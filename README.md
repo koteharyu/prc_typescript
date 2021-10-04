@@ -1,46 +1,110 @@
-# Getting Started with Create React App
+# React * TypeSctipe
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+`npx create-react-app <name> --template typescript`
 
-## Available Scripts
+# TypeScriptの基本
 
-In the project directory, you can run:
+## 型
 
-### `yarn start`
+公式... `変数: 型`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- string
+- number
+- boolean
+- null
+- undefined
+- any ...これはどの型でもいいという意味になるためtypescriptを使っている意味がなくなるので極力使わないように
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Generics ジェネリクス
 
-### `yarn test`
+`const arr :Array<number> = [0,1,2];`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+`<>`内に型を指定する方法をGenericsと呼ぶ
 
-### `yarn build`
+## 関数の型指定
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+関数の型は`引数の型`, `返却値の型`を指定できる
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+公式... `(引数: 引数の型): 返却値の型 => {}`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+`void`...関数が何も返却しないことを意味する。つまり下記のように`return`していなければ`void`型である
 
-### `yarn eject`
+```tsx
+const funcA = (num: number): void => {
+  console.log(num)
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## tsconfig.json
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+既存のアプリをTypeScript化する際に`"strict: true"`にしておくとエラーが大量発生するので最初はfalseから始めるのがベター
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## APIで取得するデータへの型宣言
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```tsx
+import { useEffect, useState } from 'react'
+import { ListItem } from './components/ListItem'
+import axios from 'axios';
 
-## Learn More
+type User = {
+  id: number;
+  name: string;
+  age: number;
+  personalColor: string;
+}
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export const App = () => {
+  // 初期値：空の配列であり、Userで定義した型である配列と宣言
+  const [users, setUsers] = useState<User[]>([])
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  useEffect(() => {
+    // type Userの型であるデータを取得するという意味
+    axios.get<User[]>('https://example.com/users')
+    .then(res => {
+      setUsers(res.data)
+    })
+    // 空の配列を依存変数に指定することで初回マウント時のみ実行させる
+  }, [])
+
+  return (
+    <div>
+      {users.map((user) => (
+        <ListItem id={user.id} name={user.name} age={user.age} />
+      ))}
+    </div>
+  )
+}
+```
+
+## Propsへの型定義
+
+ListItemコンポーネントが受け取るpropsの型を定義する
+
+```tsx
+type User = {
+  id: number;
+  name: string;
+  age: number
+}
+
+export const ListItem = (props: User) => {
+  const { id, name, age } = props;
+  return (
+    <p>
+      {id}: {name}({age})
+    </p>
+  )
+}
+```
+
+<br>
+
+## 関数コンポーネントの型定義
+
+```tsx
+export const ListItem :VFC = () => {
+  //
+}
+```
+
+`children: React.ReactNode`...childrenを使用する際は明示的に型を指定する
